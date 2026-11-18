@@ -1,0 +1,335 @@
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a"><!--
+  ====================================================================
+  Tirol-Wetter by Rohrmoser
+  Erstellt und Copyright by Christian Rohrmoser 2026
+  Alle Rechte vorbehalten.
+  ====================================================================
+-->
+<!DOCTYPE html>
+<html lang="de">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tirol-Wetter by Rohrmoser</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background: #121417; color: #f4f4f5; display: flex; flex-direction: column; align-items: center; min-height: 100dvh; padding: 18px 14px 24px; }
+
+  .container { width: 100%; max-width: 480px; }
+
+  .header-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  .header-left h1 { font-size: 17px; font-weight: 800; color: #ffffff; }
+  .header-left p { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+  .gps-btn { background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; border-radius: 10px; padding: 8px 11px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+  .gps-btn:active { transform: scale(0.97); }
+
+  .search-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .search-row input { flex: 1; background: #1e2025; border: 1px solid #3f4451; border-radius: 12px; padding: 10px 12px; color: #ffffff; font-size: 14px; outline: none; }
+  .search-row input:focus { border-color: #38bdf8; }
+  .search-row button { background: #272a30; border: 1px solid #3f4451; color: #ffffff; border-radius: 12px; padding: 0 14px; font-size: 14px; font-weight: 700; cursor: pointer; }
+
+  .quick-cities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+  .city-chip { background: #1e2025; border: 1px solid #2e323b; color: #d1d5db; border-radius: 10px; padding: 8px 4px; font-size: 12px; font-weight: 700; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .city-chip.active { background: rgba(2, 132, 199, 0.2); border-color: #38bdf8; color: #ffffff; }
+
+  .hero-card { background: linear-gradient(135deg, #172554 0%, #1e1b4b 100%); border: 1px solid #3b82f6; border-radius: 18px; padding: 18px; margin-bottom: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
+  .hero-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .city-name { font-size: 20px; font-weight: 800; color: #ffffff; }
+  .city-sub { font-size: 12px; color: #93c5fd; margin-top: 2px; }
+  .weather-icon-big { font-size: 46px; line-height: 1; }
+  .temp-row { display: flex; align-items: baseline; gap: 12px; margin: 12px 0 14px; }
+  .temp-main { font-size: 48px; font-weight: 800; color: #ffffff; line-height: 1; }
+  .weather-desc { font-size: 15px; font-weight: 600; color: #dbeafe; }
+  .feels-like { font-size: 12px; color: #93c5fd; margin-top: 2px; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .metric-box { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 12px; padding: 9px 6px; text-align: center; }
+  .metric-label { font-size: 10px; text-transform: uppercase; color: #93c5fd; font-weight: 600; }
+  .metric-val { font-size: 14px; font-weight: 800; color: #ffffff; margin-top: 3px; }
+
+  .card { background: #1e2025; border: 1px solid #2e323b; border-radius: 16px; padding: 14px; margin-bottom: 12px; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #9ca3af; margin-bottom: 10px; }
+
+  .hourly-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+  .hourly-scroll::-webkit-scrollbar { display: none; }
+  .hour-item { background: #141619; border: 1px solid #2e323b; border-radius: 12px; padding: 8px 10px; min-width: 64px; text-align: center; flex-shrink: 0; }
+  .hour-time { font-size: 11px; color: #9ca3af; font-weight: 600; }
+  .hour-icon { font-size: 20px; margin: 5px 0; }
+  .hour-temp { font-size: 14px; font-weight: 800; color: #ffffff; }
+  .hour-rain { font-size: 10px; color: #38bdf8; margin-top: 2px; font-weight: 600; }
+
+  .daily-list { display: flex; flex-direction: column; gap: 8px; }
+  .daily-row { display: grid; grid-template-columns: 1.3fr 0.6fr 0.8fr 1.2fr; align-items: center; background: #141619; border: 1px solid #2a2e37; border-radius: 10px; padding: 9px 12px; font-size: 13px; }
+  .day-name { font-weight: 700; color: #f4f4f5; }
+  .day-icon { font-size: 18px; text-align: center; }
+  .day-rain { font-size: 11px; color: #38bdf8; font-weight: 600; text-align: center; }
+  .day-temps { text-align: right; font-weight: 700; }
+  .t-min { color: #94a3b8; font-weight: 600; margin-right: 6px; }
+  .t-max { color: #ffffff; }
+
+  .status-bar { font-size: 11px; color: #94a3b8; text-align: center; margin-bottom: 8px; }
+  footer { margin-top: 6px; font-size: 11px; color: #6b7280; text-align: center; line-height: 1.5; }
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="header-card">
+    <div class="header-left">
+      <h1>Wettermoser ☀️🏔️ "Weil man dem Wetter nicht trauen kann." 😄</h1>
+      <p>Alpen-Vorhersage (ICON-D2 / AROME)</p>
+    </div>
+    <button class="gps-btn" onclick="useGPS()">📍 Standort</button>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="cityInput" placeholder="Ort suchen (z. B. Wörgl, St. Johann)..." onkeydown="if(event.key==='Enter') searchCity()">
+    <button onclick="searchCity()">Suchen</button>
+  </div>
+
+  <div class="quick-cities">
+    <div id="chip-kufstein" class="city-chip active" onclick="selectPreset('Kufstein', 47.5833, 12.1667, 'chip-kufstein')">Kufstein</div>
+    <div id="chip-angerberg" class="city-chip" onclick="selectPreset('Angerberg', 47.5081, 12.0194, 'chip-angerberg')">Angerberg</div>
+    <div id="chip-uderns" class="city-chip" onclick="selectPreset('Uderns', 47.3236, 11.8639, 'chip-uderns')">Uderns</div>
+    <div id="chip-thierbach" class="city-chip" onclick="selectPreset('Thierbach', 47.2692, 11.4041, 'chip-thierbach')">Thierbach</div>    
+  </div>
+
+  <div class="status-bar" id="statusBar">Lade Wetterdaten...</div>
+
+  <div class="hero-card">
+    <div class="hero-top">
+      <div>
+        <div class="city-name" id="cityName">Kufstein</div>
+        <div class="city-sub" id="cityCoords">Tirol • 47.58° N, 12.17° O</div>
+      </div>
+      <div class="weather-icon-big" id="currentIcon">⛅</div>
+    </div>
+
+    <div class="temp-row">
+      <div class="temp-main" id="currentTemp">--°</div>
+      <div>
+        <div class="weather-desc" id="currentDesc">Wird geladen...</div>
+        <div class="feels-like" id="feelsLike">Gefühlt: --°C</div>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-box">
+        <div class="metric-label">Wind</div>
+        <div class="metric-val" id="currentWind">-- km/h</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Luftfeuchte</div>
+        <div class="metric-val" id="currentHumidity">-- %</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">Regen heute</div>
+        <div class="metric-val" id="todayRain">-- mm</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Nächste 24 Stunden</div>
+    <div class="hourly-scroll" id="hourlyContainer"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">7-Tage-Vorschau</div>
+    <div class="daily-list" id="dailyContainer"></div>
+  </div>
+
+  <footer>
+    Wetterdaten: Open-Meteo.com (CC BY 4.0)<br>
+    &copy; 2026 Christian Rohrmoser – Alle Rechte vorbehalten
+  </footer>
+</div>
+
+<script>
+  const wmoCodes = {
+    0:  { text: "Klarer Himmel", icon: "☀️" },
+    1:  { text: "Überwiegend klar", icon: "🌤️" },
+    2:  { text: "Teilweise bewölkt", icon: "⛅" },
+    3:  { text: "Bedeckt", icon: "☁️" },
+    45: { text: "Nebel", icon: "🌫️" },
+    48: { text: "Reifnebel", icon: "🌫️" },
+    51: { text: "Leichter Nieselregen", icon: "🌦️" },
+    53: { text: "Mäßiger Nieselregen", icon: "🌦️" },
+    55: { text: "Starker Nieselregen", icon: "🌧️" },
+    61: { text: "Leichter Regen", icon: "🌦️" },
+    63: { text: "Mäßiger Regen", icon: "🌧️" },
+    65: { text: "Starker Regen", icon: "🌧️" },
+    66: { text: "Gefrierender Regen", icon: "🌨️" },
+    67: { text: "Starker gefr. Regen", icon: "🌨️" },
+    71: { text: "Leichter Schneefall", icon: "🌨️" },
+    73: { text: "Mäßiger Schneefall", icon: "❄️" },
+    75: { text: "Starker Schneefall", icon: "❄️" },
+    77: { text: "Schneegriesel", icon: "❄️" },
+    80: { text: "Leichte Regenschauer", icon: "🌦️" },
+    81: { text: "Regenschauer", icon: "🌧️" },
+    82: { text: "Heftige Regenschauer", icon: "⛈️" },
+    85: { text: "Leichte Schneeschauer", icon: "🌨️" },
+    86: { text: "Starke Schneeschauer", icon: "❄️" },
+    95: { text: "Gewitter", icon: "⛈️" },
+    96: { text: "Gewitter mit Hagel", icon: "⛈️" },
+    99: { text: "Starkes Hagelgewitter", icon: "⛈️" }
+  };
+
+  function getWmo(code) {
+    return wmoCodes[code] || { text: "Wechselhaft", icon: "⛅" };
+  }
+
+  function clearActiveChips() {
+    document.querySelectorAll('.city-chip').forEach(el => el.classList.remove('active'));
+  }
+
+  function selectPreset(name, lat, lon, chipId) {
+    clearActiveChips();
+    if (chipId) document.getElementById(chipId).classList.add('active');
+    loadWeather(name, lat, lon);
+  }
+
+  async function searchCity() {
+    const query = document.getElementById('cityInput').value.trim();
+    if (!query) return;
+    document.getElementById('statusBar').textContent = `Suche "${query}"...`;
+    try {
+      const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+      geoUrl.searchParams.set("name", query);
+      geoUrl.searchParams.set("count", "1");
+      geoUrl.searchParams.set("language", "de");
+      geoUrl.searchParams.set("format", "json");
+
+      const res = await fetch(geoUrl.toString());
+      const data = await res.json();
+      const place = data.results && data.results.at(0);
+      if (!place) {
+        document.getElementById('statusBar').textContent = `Ort "${query}" nicht gefunden.`;
+        return;
+      }
+      const displayName = place.admin1 ? `${place.name} (${place.admin1})` : place.name;
+      clearActiveChips();
+      loadWeather(displayName, place.latitude, place.longitude);
+    } catch (e) {
+      document.getElementById('statusBar').textContent = `Suchfehler: ${e.message}`;
+    }
+  }
+
+  function useGPS() {
+    if (!navigator.geolocation) {
+      document.getElementById('statusBar').textContent = "GPS wird nicht unterstützt.";
+      return;
+    }
+    document.getElementById('statusBar').textContent = "Ermittle GPS-Standort...";
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        clearActiveChips();
+        loadWeather("Mein Standort (GPS)", pos.coords.latitude, pos.coords.longitude);
+      },
+      () => {
+        document.getElementById('statusBar').textContent = "Standortfreigabe verweigert.";
+      },
+      { timeout: 8000 }
+    );
+  }
+
+  async function loadWeather(name, lat, lon) {
+    document.getElementById('cityName').textContent = name;
+    document.getElementById('cityCoords').textContent = `${lat.toFixed(2)}° N, ${lon.toFixed(2)}° O`;
+    document.getElementById('statusBar').textContent = "Aktualisiere Wetterdaten...";
+
+    const apiUrl = new URL("https://api.open-meteo.com/v1/forecast");
+    apiUrl.searchParams.set("latitude", lat);
+    apiUrl.searchParams.set("longitude", lon);
+    apiUrl.searchParams.set("current", "temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m");
+    apiUrl.searchParams.set("hourly", "temperature_2m,precipitation_probability,weather_code");
+    apiUrl.searchParams.set("daily", "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum");
+    apiUrl.searchParams.set("timezone", "Europe/Berlin");
+    apiUrl.searchParams.set("forecast_days", "7");
+
+    try {
+      const res = await fetch(apiUrl.toString());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      const nowStr = new Date().toLocaleTimeString('de-AT', {hour: '2-digit', minute:'2-digit'});
+      localStorage.setItem('tirol_wetter_cache', JSON.stringify({ name, lat, lon, data, time: nowStr }));
+      renderWeather(data, `Aktualisiert: ${nowStr} Uhr`);
+    } catch (err) {
+      const cached = localStorage.getItem('tirol_wetter_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        renderWeather(parsed.data, `Offline-Modus (Stand: ${parsed.time} Uhr)`);
+      } else {
+        document.getElementById('statusBar').textContent = `Fehler beim Laden: ${err.message}`;
+      }
+    }
+  }
+
+  function renderWeather(data, statusText) {
+    document.getElementById('statusBar').textContent = statusText;
+
+    const cur = data.current;
+    const wmoCur = getWmo(cur.weather_code);
+    const rainTodayVal = Number(data.daily.precipitation_sum.at(0) || 0);
+
+    document.getElementById('currentTemp').textContent = `${Math.round(cur.temperature_2m)}°`;
+    document.getElementById('currentIcon').textContent = wmoCur.icon;
+    document.getElementById('currentDesc').textContent = wmoCur.text;
+    document.getElementById('feelsLike').textContent = `Gefühlt: ${Math.round(cur.apparent_temperature)}°C`;
+    document.getElementById('currentWind').textContent = `${Math.round(cur.wind_speed_10m)} km/h`;
+    document.getElementById('currentHumidity').textContent = `${cur.relative_humidity_2m} %`;
+    document.getElementById('todayRain').textContent = `${rainTodayVal.toFixed(1)} mm`;
+
+    const hourlyEl = document.getElementById('hourlyContainer');
+    hourlyEl.innerHTML = "";
+    const nowIso = cur.time.slice(0, 13);
+    let startIndex = data.hourly.time.findIndex(t => t.startsWith(nowIso));
+    if (startIndex < 0) startIndex = 0;
+
+    for (let i = startIndex; i < Math.min(startIndex + 24, data.hourly.time.length); i++) {
+      const hourStr = data.hourly.time.at(i).slice(11, 16);
+      const temp = Math.round(data.hourly.temperature_2m.at(i));
+      const pop = data.hourly.precipitation_probability.at(i) || 0;
+      const icon = getWmo(data.hourly.weather_code.at(i)).icon;
+
+      hourlyEl.innerHTML += `
+        <div class="hour-item">
+          <div class="hour-time">${hourStr}</div>
+          <div class="hour-icon">${icon}</div>
+          <div class="hour-temp">${temp}°</div>
+          <div class="hour-rain">${pop > 0 ? '💧' + pop + '%' : '—'}</div>
+        </div>
+      `;
+    }
+
+    const dailyEl = document.getElementById('dailyContainer');
+    dailyEl.innerHTML = "";
+    const wochentage = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+
+    for (let d = 0; d < data.daily.time.length; d++) {
+      const dateObj = new Date(data.daily.time.at(d) + "T12:00:00");
+      const dayLabel = d === 0 ? "Heute" : `${wochentage.at(dateObj.getDay())}, ${dateObj.getDate()}.${dateObj.getMonth() + 1}.`;
+      const icon = getWmo(data.daily.weather_code.at(d)).icon;
+      const rain = Number(data.daily.precipitation_sum.at(d) || 0);
+      const tMin = Math.round(data.daily.temperature_2m_min.at(d));
+      const tMax = Math.round(data.daily.temperature_2m_max.at(d));
+
+      dailyEl.innerHTML += `
+        <div class="daily-row">
+          <div class="day-name">${dayLabel}</div>
+          <div class="day-icon">${icon}</div>
+          <div class="day-rain">${rain > 0 ? '💧 ' + rain.toFixed(1) + ' mm' : ''}</div>
+          <div class="day-temps"><span class="t-min">${tMin}°</span><span class="t-max">${tMax}°</span></div>
+        </div>
+      `;
+    }
+  }
+
+  loadWeather("Kufstein", 47.5833, 12.1667);
+</script>
+</<script>
+</script>
+</html>

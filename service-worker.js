@@ -1,4 +1,4 @@
-const CACHE_NAME = "wettermoser-v1";
+const CACHE_NAME = "wettermoser-v2";
 
 self.addEventListener("install", event => {
   event.waitUntil(
